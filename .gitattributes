@@ -1,0 +1,17 @@
+# Line endings are decided here rather than by whoever checks the repository out,
+# so the release runner produces the same bytes as a local build.
+* text=auto eol=lf
+
+# The canonical configuration ships as a Windows INI and the plugin writes it back
+# byte for byte, so its CRLF endings are part of the file, not a checkout detail.
+Config/*.ini text eol=crlf
+
+# What Visual Studio rewrites anyway, and what a person opens out of the archive.
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+*.ps1 text eol=crlf
+
+# Left byte for byte as they are.
+*.png binary
+*.asi binary
+*.zip binary
