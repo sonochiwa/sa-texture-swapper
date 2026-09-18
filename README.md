@@ -1,7 +1,8 @@
 # Texture Swapper
 
-An ASI plugin for **GTA San Andreas 1.0 US** that replaces single textures
-inside `.txd` dictionaries from loose PNG files, while the game is running.
+`TextureSwapper.asi` is a standalone GTA San Andreas plugin that replaces
+single textures inside `.txd` dictionaries from loose PNG files, while the
+game is running.
 
 Mod Loader works with whole files: to change one icon you have to supply the
 entire `.txd`. That is awkward for small edits, like swapping the fist icon, the
@@ -29,9 +30,9 @@ Loader instead of competing with it, and it does not need Mod Loader installed.
 
 ## Requirements
 
-- **GTA San Andreas 1.0 US** (`gta_sa.exe`, image base `0x400000`). Hook
-  addresses are specific to this build; 1.01, 3.0 Steam and the Definitive
-  Edition are rejected at startup.
+- GTA San Andreas 1.0 US (Compact or Hoodlum executable). Hook addresses are
+  specific to this build; 1.01, 3.0 Steam and the Definitive Edition are
+  rejected at startup and the plugin stays inactive.
 - An ASI loader, such as Silent's ASI Loader or Ultimate ASI Loader.
 
 ## Installation
@@ -60,7 +61,7 @@ swapper\models\gta3.img\camera\cameraCrosshair.png
   identifies a dictionary by its name alone, with no notion of the archive it
   came from.
 - Names are matched case-insensitively.
-- Set `loggingEnabled=1` in the INI to get `TextureSwapper.log` next to the
+- Set `log=1` in the INI to get `TextureSwapper.log` next to the
   plugin, listing every replacement and every skipped file. A folder that is
   close to a real dictionary name but matches none is reported there with the
   names it should have.
@@ -70,27 +71,26 @@ them up in a TXD editor such as Magic.TXD.
 
 ## Configuration
 
-`TextureSwapper.ini` sits next to `TextureSwapper.asi`. When it is missing, the
-plugin writes this file:
-
 ```ini
-# Texture Swapper v1.0.0
+# Texture Swapper v1.1.0
 # Created by sonochiwa
 # Source code: https://github.com/sonochiwa/sa-texture-swapper
 
 [general]
 isEnabled=1
-loggingEnabled=0
+log=0
 hotReload=1
 ```
 
 | Setting | Default | Meaning |
-| --- | --- | --- |
+| --- | ---: | --- |
+| `[general]` | | |
 | `isEnabled` | `1` | Master switch. `0` performs no replacements. |
-| `loggingEnabled` | `0` | Write `TextureSwapper.log` next to the plugin. Off by default, so no file is created at all. |
+| `log` | `0` | Write `TextureSwapper.log` next to the plugin. Off by default, so no file is created at all. |
 | `hotReload` | `1` | Watch the folder and apply edits while the game runs. |
 
-Turn `loggingEnabled` on when a replacement does not show up: the log then names
+`TextureSwapper.ini` sits next to `TextureSwapper.asi` and is created from the
+embedded canonical file when it is missing. Turn `log` on when a replacement does not show up: the log then names
 every texture that was replaced and every file that was skipped, with the reason.
 That is also the only place the plugin reports an unsupported executable, so with
 logging off it simply stays silent.
@@ -107,28 +107,16 @@ both in the log.
 
 ## Building
 
-Requires Visual Studio with the C++ desktop workload. A pre-build step uses
-Windows PowerShell to generate the embedded configuration template from
-`Config\TextureSwapper.ini`, which is the single source of truth for defaults.
+Visual Studio 2022 (v143), `Release|Win32`. Open `TextureSwapper.sln` or run:
 
 ```powershell
-msbuild TextureSwapper.sln /t:Rebuild /p:Configuration=Release /p:Platform=Win32 /m
+msbuild TextureSwapper.sln /t:Rebuild /p:Configuration=Release /p:Platform=Win32
 ```
 
-Output is `build\TextureSwapper.asi` with `build\TextureSwapper.ini` beside it.
-`tools\Package.ps1 -Version X.Y.Z` stages and zips a release from that build.
-
-## Release Integrity
-
-Release archives are built by GitHub Actions from the tagged commit. Each release
-carries a `.sha256` file and a signed build-provenance attestation:
-
-```text
-gh attestation verify TextureSwapper-v1.0.0.zip -R sonochiwa/sa-texture-swapper
-```
-
-That proves the bytes came from this repository's workflow at a specific commit.
-It says nothing about the code being free of defects.
+The plugin is written to `build\TextureSwapper.asi` next to a copy of the
+INI. `Config\TextureSwapper.ini` is compiled into the plugin as an `RCDATA`
+resource, so the INI written when the file is missing is byte for byte the
+canonical one.
 
 ## Repository Layout
 
@@ -137,26 +125,29 @@ TextureSwapper.sln
 README.md
 CHANGELOG.md
 LICENSE
+.github\workflows\release.yml   Tagged release build, checksum and attestation
 Config\
-  TextureSwapper.ini         Canonical release configuration
+  TextureSwapper.ini            Canonical configuration, embedded as RCDATA
 src\
+  TextureSwapper.cpp            DllMain: version check, hook installation, startup thread
+  TextureSwapper.rc             Version resource and the embedded INI
   TextureSwapper.vcxproj
-  main.cpp                   DllMain, version check, hooks, deferred startup
-  config.cpp/.h              INI handling
-  overrides.cpp/.h           Folder scan; maps TXD name hash to PNG files
-  applier.cpp/.h             Applies, reapplies and reverts replacements
-  texture.cpp/.h             PNG to RwRaster
-  game.cpp/.h                RenderWare structures and game addresses
-  watcher.cpp/.h             Folder watcher for hot reload
-  log.cpp/.h
+  addresses.h                   Game and RenderWare addresses
+  applier.cpp / applier.h       Applies, reapplies and reverts replacements
+  config.cpp / config.h         INI creation and loading
+  game.cpp / game.h             RenderWare structures and wrappers
+  game_check.cpp / game_check.h Executable identification
+  hooks.cpp / hooks.h           CTxdStore and CTimer hooks, deferred initialisation
+  log.cpp / log.h               Optional log file
+  overrides.cpp / overrides.h   Folder scan; maps TXD name hash to PNG files
+  stb_image_impl.cpp            stb_image implementation unit
+  texture.cpp / texture.h       PNG to RwRaster
+  watcher.cpp / watcher.h       Folder watcher for hot reload
+  resource.h
   version.h
 vendor\
-  minhook\                   Function hooking
-  stb\                       PNG decoding
-tools\
-  GenerateConfigTemplate.ps1
-  Package.ps1
-.github\workflows\release.yml
+  minhook\                      MinHook, compiled into the plugin
+  stb\                          stb_image.h
 ```
 
 ## How It Works
@@ -182,10 +173,18 @@ aside for restoring.
 folder scan happen on a startup thread, so no file access occurs under the loader
 lock.
 
+## Release Integrity
+
+Tagged releases are built by GitHub Actions from the tagged commit. Each
+release carries `TextureSwapper-vX.Y.Z.zip`, its SHA-256 in
+`TextureSwapper-vX.Y.Z.zip.sha256` and a signed build-provenance attestation,
+which proves that the archive was produced by this repository's workflow
+from that revision. It does not prove the code is bug-free.
+
+```text
+gh attestation verify TextureSwapper-vX.Y.Z.zip -R sonochiwa/sa-texture-swapper
+```
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
-
-Third-party components: [MinHook](https://github.com/TsudaKageyu/minhook)
-(BSD-2-Clause) and [stb_image](https://github.com/nothings/stb) (public domain
-or MIT).

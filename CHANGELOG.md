@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+- Changed the `loggingEnabled` setting to `log`. An existing INI keeps
+  working with logging off; rename the key to turn it back on.
+- Added version information to the plugin file.
+- Removed `README.txt` from the release archive; the repository README is the
+  documentation.
+
 ## 1.0.0
 
 - Added replacement of single textures inside GTA San Andreas texture

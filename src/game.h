@@ -1,13 +1,13 @@
-// Minimal RenderWare / GTA SA (1.0 US) definitions used by the plugin.
-// Addresses are cross-checked against gta_sa.exe 1.0 US (SizeOfImage 0x1177000).
 #pragma once
+
+#include "addresses.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
 
-// ---------------------------------------------------------------- RenderWare
+// RenderWare structures the plugin reads and writes.
 
 struct RwLLLink {
     RwLLLink* next;
@@ -73,21 +73,23 @@ enum : uint32_t {
     rwTEXTUREFILTERMODEMASK = 0x000000FF,
 };
 
-// ------------------------------------------------------------- game internals
+// Game internals.
 
 // A slot of CTxdStore::ms_pTxdPool.
 struct TxdDef {
     RwTexDictionary* dict;
     uint16_t         refsCount;
     int16_t          parentIndex;
-    uint32_t         hash; // CKeyGen::GetUppercaseKey(txd name)
+    // CKeyGen::GetUppercaseKey(txd name)
+    uint32_t         hash;
 };
 static_assert(sizeof(TxdDef) == 0xC, "TxdDef layout");
 
 // CPool<TxdDef> header. Only the fields we read are named.
 struct CPoolRaw {
     void*    objects;
-    uint8_t* byteMap; // bit 7 set => slot is empty
+    // Bit 7 set: the slot is empty.
+    uint8_t* byteMap;
     int32_t  size;
     int32_t  firstFree;
     bool     ownsAllocations;
@@ -95,26 +97,6 @@ struct CPoolRaw {
 };
 
 namespace game {
-
-// Hook targets.
-constexpr uintptr_t kAddrLoadTxd       = 0x731DD0; // CTxdStore::LoadTxd(int, RwStream*)
-constexpr uintptr_t kAddrFinishLoadTxd = 0x731E40; // CTxdStore::FinishLoadTxd(int, RwStream*)
-constexpr uintptr_t kAddrRemoveTxd     = 0x731E90; // CTxdStore::RemoveTxd(int)
-constexpr uintptr_t kAddrAddTxdSlot    = 0x731C80; // CTxdStore::AddTxdSlot(const char*)
-constexpr uintptr_t kAddrLoadTxdFile   = 0x7320B0; // CTxdStore::LoadTxd(int, const char*)
-constexpr uintptr_t kAddrTimerUpdate   = 0x561B10; // CTimer::Update()
-
-// Called functions.
-constexpr uintptr_t kAddrTxdPoolPtr        = 0xC8800C; // CPool<TxdDef>**
-constexpr uintptr_t kAddrGetUppercaseKey   = 0x53CF30;
-constexpr uintptr_t kAddrRwRasterCreate    = 0x7FB230;
-constexpr uintptr_t kAddrRwRasterDestroy   = 0x7FB020;
-constexpr uintptr_t kAddrRwRasterLock      = 0x7FB2D0;
-constexpr uintptr_t kAddrRwRasterUnlock    = 0x7FAEC0;
-constexpr uintptr_t kAddrRwTextureCreate   = 0x7F37C0;
-constexpr uintptr_t kAddrRwTextureDestroy  = 0x7F3820;
-constexpr uintptr_t kAddrRwTextureSetName  = 0x7F38A0;
-constexpr uintptr_t kAddrRwTexDictAddTex   = 0x7F3980;
 
 inline uint32_t GetUppercaseKey(const char* str) {
     return reinterpret_cast<uint32_t(__cdecl*)(const char*)>(kAddrGetUppercaseKey)(str);
@@ -167,7 +149,7 @@ inline TxdDef* GetTxdDef(int index) {
         return nullptr;
     if (index < 0 || index >= pool->size)
         return nullptr;
-    if (pool->byteMap[index] & 0x80) // bEmpty
+    if (pool->byteMap[index] & 0x80)
         return nullptr;
     return reinterpret_cast<TxdDef*>(static_cast<uint8_t*>(pool->objects) + index * sizeof(TxdDef));
 }

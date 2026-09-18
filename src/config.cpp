@@ -1,8 +1,8 @@
 #include "config.h"
 
-#include <windows.h>
+#include "resource.h"
 
-#include "generated/DefaultConfigIni.h"
+#include <windows.h>
 
 namespace {
 
@@ -27,32 +27,39 @@ int ReadInt(const std::wstring& ini, const wchar_t* section, const wchar_t* key,
     return static_cast<int>(GetPrivateProfileIntW(section, key, def, ini.c_str()));
 }
 
-// Writes the canonical configuration verbatim, so a generated INI is byte-for-byte
-// identical to Config\TextureSwapper.ini.
-void WriteDefaultIni(const std::wstring& ini) {
+// Writes the RCDATA copy of Config\TextureSwapper.ini byte for byte.
+void WriteDefaultIni(HMODULE module, const std::wstring& ini) {
+    const HRSRC resource = FindResourceW(module, MAKEINTRESOURCEW(IDR_DEFAULT_INI), RT_RCDATA);
+    if (!resource)
+        return;
+    const HGLOBAL handle = LoadResource(module, resource);
+    const DWORD size = SizeofResource(module, resource);
+    const void* data = handle ? LockResource(handle) : nullptr;
+    if (!data || size == 0)
+        return;
+
     HANDLE file = CreateFileW(ini.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_NEW,
                               FILE_ATTRIBUTE_NORMAL, nullptr);
     if (file == INVALID_HANDLE_VALUE)
         return;
 
     DWORD written = 0;
-    WriteFile(file, kDefaultConfigIni, static_cast<DWORD>(sizeof(kDefaultConfigIni)), &written,
-              nullptr);
+    WriteFile(file, data, size, &written, nullptr);
     CloseHandle(file);
 }
 
 } // namespace
 
-Config LoadConfig(const std::wstring& dllPath) {
+Config LoadConfig(HMODULE module, const std::wstring& dllPath) {
     Config cfg;
 
     const std::wstring dllDir = DirOf(dllPath);
     const std::wstring ini    = JoinPath(dllDir, L"TextureSwapper.ini");
     if (GetFileAttributesW(ini.c_str()) == INVALID_FILE_ATTRIBUTES)
-        WriteDefaultIni(ini);
+        WriteDefaultIni(module, ini);
 
     cfg.isEnabled      = ReadInt(ini, L"general", L"isEnabled", 1) != 0;
-    cfg.loggingEnabled = ReadInt(ini, L"general", L"loggingEnabled", 0) != 0;
+    cfg.log            = ReadInt(ini, L"general", L"log", 0) != 0;
     cfg.hotReload      = ReadInt(ini, L"general", L"hotReload", 1) != 0;
 
     // The folder follows the game, not the plugin: the .asi may sit in scripts\ while
