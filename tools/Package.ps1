@@ -55,46 +55,6 @@ New-Item -ItemType Directory -Force -Path $staging | Out-Null
 Copy-Item -LiteralPath $binary -Destination (Join-Path $staging 'TextureSwapper.asi')
 Copy-Item -LiteralPath $canonical -Destination (Join-Path $staging 'TextureSwapper.ini')
 
-$readme = @(
-    "Texture Swapper v$Version"
-    'Created by sonochiwa'
-    ''
-    'Replaces single textures inside .txd dictionaries from loose PNG files, while'
-    'the game is running, without rebuilding the .txd or the .img holding them.'
-    'Requires GTA San Andreas 1.0 US and an ASI loader.'
-    ''
-    'Installation'
-    ''
-    '1. Copy TextureSwapper.asi and TextureSwapper.ini into the game directory,'
-    '   next to gta_sa.exe.'
-    '2. Create a folder named swapper next to gta_sa.exe.'
-    '3. Inside it, create one folder per TXD and put your PNG files there. The'
-    '   folder holding a PNG names the TXD, the file name names the texture:'
-    ''
-    '     swapper\hud\fist.png  ->  texture "fist" in hud.txd'
-    ''
-    '   A .txd suffix on the folder is accepted too. Folders above it are'
-    '   free-form and ignored when matching. Naming the folder after the .txd'
-    '   file always works.'
-    '4. Start the game.'
-    ''
-    'Notes'
-    ''
-    '- PNG is the only supported input format.'
-    '- Edit a PNG while playing and the texture updates without a restart; delete'
-    '  it and the original comes back.'
-    '- Replacements apply on top of dictionaries supplied by other mods, including'
-    '  Mod Loader, so an HD pack does not have to be rebuilt for a single texture.'
-    '- If a replacement does not show up, set loggingEnabled=1 in'
-    '  TextureSwapper.ini. TextureSwapper.log then lists every replacement and'
-    '  every skipped file, with the reason.'
-    ''
-    'Source code: https://github.com/sonochiwa/sa-texture-swapper'
-) -join "`r`n"
-
-[System.IO.File]::WriteAllText((Join-Path $staging 'README.txt'), $readme + "`r`n",
-    (New-Object System.Text.UTF8Encoding $false))
-
 Compress-Archive -LiteralPath (Get-ChildItem -LiteralPath $staging).FullName `
     -DestinationPath $archive -CompressionLevel Optimal
 
