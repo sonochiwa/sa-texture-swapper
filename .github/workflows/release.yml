@@ -54,18 +54,7 @@ jobs:
           if (-not $section.Success) {
             throw "CHANGELOG.md has no section for $version"
           }
-          $verify = @(
-            ''
-            '## Verifying this download'
-            ''
-            'The archive was built by GitHub Actions from the tagged commit and carries a'
-            'signed build-provenance attestation:'
-            ''
-            '```'
-            ('gh attestation verify TextureSwapper-v' + $version + '.zip -R ${{ github.repository }}')
-            '```'
-          ) -join "`n"
-          $body = $section.Groups[1].Value.Trim() + "`n" + $verify
+          $body = $section.Groups[1].Value.Trim()
           Set-Content -LiteralPath 'release-notes.md' -Value $body -Encoding utf8
 
       - name: Attest release archive
