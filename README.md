@@ -16,12 +16,13 @@ has to be rebuilt. It works on top of Mod Loader and without it.
   such as `hud.txd`, `fonts.txd` and `particle.txd`.
 - Picks up edits while the game runs; deleting a PNG restores the original.
 - Adds the texture if the dictionary has none by that name.
-- Stays inactive on any executable other than 1.0 US.
 
 ## Requirements
 
 - GTA San Andreas 1.0 US (Compact or Hoodlum executable).
 - An ASI loader, such as Silent's ASI Loader or Ultimate ASI Loader.
+
+Other executables are left untouched.
 
 ## Installation
 

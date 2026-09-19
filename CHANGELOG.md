@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Added `README.txt` to the release archive.
+
 ## 1.2.0
 
 - Removed the INI and the log; hot reload is always on and the textures
