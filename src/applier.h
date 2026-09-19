@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "overrides.h"
@@ -46,7 +45,6 @@ private:
     };
 
     const TxdOverride* FindOverrides(int slot, const TxdDef* def) const;
-    void               WarnAboutNearMiss(int slot);
     void               Sync(int slot, RwTexDictionary* dict, const TxdOverride* overrides);
     void               Revert(AppliedTexture& applied);
     void               Forget(int slot);
@@ -58,5 +56,4 @@ private:
     // Slot index to the two names a folder may legitimately carry.
     std::unordered_map<int, std::string> slotNames_;
     std::unordered_map<int, std::string> fileNames_;
-    std::unordered_set<int>              warned_;
 };

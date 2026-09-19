@@ -3,11 +3,9 @@
   <ItemGroup>
     <ClCompile Include="TextureSwapper.cpp" />
     <ClCompile Include="applier.cpp" />
-    <ClCompile Include="config.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="game_check.cpp" />
     <ClCompile Include="hooks.cpp" />
-    <ClCompile Include="log.cpp" />
     <ClCompile Include="overrides.cpp" />
     <ClCompile Include="stb_image_impl.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -16,11 +14,9 @@
   <ItemGroup>
     <ClInclude Include="addresses.h" />
     <ClInclude Include="applier.h" />
-    <ClInclude Include="config.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="game_check.h" />
     <ClInclude Include="hooks.h" />
-    <ClInclude Include="log.h" />
     <ClInclude Include="overrides.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="texture.h" />
@@ -35,6 +31,5 @@
     <None Include="..\CHANGELOG.md" />
     <None Include="..\LICENSE" />
     <None Include="..\README.md" />
-    <None Include="..\Config\TextureSwapper.ini" />
   </ItemGroup>
 </Project>

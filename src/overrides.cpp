@@ -8,7 +8,6 @@
 #include <system_error>
 
 #include "game.h"
-#include "log.h"
 
 namespace fs = std::filesystem;
 
@@ -59,13 +58,11 @@ bool Registry::Rescan(const std::wstring& root) {
     std::error_code ec;
     const fs::path rootPath(root);
     if (!fs::is_directory(rootPath, ec)) {
-        LOG_INFO("textures folder '%s' does not exist, nothing to do", ToNarrow(root).c_str());
         return false;
     }
 
     fs::recursive_directory_iterator it(rootPath, fs::directory_options::skip_permission_denied, ec);
     if (ec) {
-        LOG_ERROR("cannot walk '%s': %s", ToNarrow(root).c_str(), ec.message().c_str());
         return false;
     }
 
@@ -77,8 +74,6 @@ bool Registry::Rescan(const std::wstring& root) {
 
         const fs::path parent = entry.path().parent_path();
         if (fs::equivalent(parent, rootPath, ec)) {
-            LOG_ERROR("'%s' sits directly in the root; it needs a <txd name> folder around it",
-                      ToNarrow(entry.path().filename().wstring()).c_str());
             return;
         }
 
@@ -96,15 +91,10 @@ bool Registry::Rescan(const std::wstring& root) {
         // match down. A PNG sitting straight inside an .img folder means someone
         // expected otherwise.
         if (EndsWith(txdName, ".img")) {
-            LOG_ERROR("'%s' is inside '%s', but textures live in a txd, not in an archive; "
-                      "put it in a <txd name>.txd folder instead",
-                      ToNarrow(entry.path().filename().wstring()).c_str(), txdName.c_str());
             return;
         }
 
         if (textureName.size() >= kRwTextureBaseNameLength) {
-            LOG_ERROR("texture name '%s' is longer than %zu characters, skipped",
-                      textureName.c_str(), kRwTextureBaseNameLength - 1);
             return;
         }
 
@@ -119,8 +109,6 @@ bool Registry::Rescan(const std::wstring& root) {
         auto              dup = std::find_if(txd.textures.begin(), txd.textures.end(),
                                              [&](const TextureSource& t) { return ToLower(t.name) == key; });
         if (dup != txd.textures.end()) {
-            LOG_ERROR("'%s' in %s.txd is defined twice; keeping '%s'", textureName.c_str(),
-                      txdName.c_str(), ToNarrow(dup->path).c_str());
             return;
         }
 
@@ -131,13 +119,10 @@ bool Registry::Rescan(const std::wstring& root) {
     try {
         for (const fs::directory_entry& entry : it)
             consider(entry);
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         // A folder vanishing mid-scan (hot reload) must not take the game down.
-        LOG_ERROR("scan interrupted: %s", e.what());
     }
 
-    LOG_INFO("scanned '%s': %zu texture(s) across %zu txd(s)", ToNarrow(root).c_str(),
-             textureCount_, txds_.size());
     return true;
 }
 

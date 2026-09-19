@@ -4,12 +4,11 @@
 // the dictionary first, then the plugin patches its textures into the
 // finished RwTexDictionary, which is what makes it additive rather than
 // competing. Hooks are installed in DllMain because the first dictionary is
-// loaded before any thread of ours could run; configuration, logging and the
-// folder scan happen later, outside the loader lock.
+// loaded before any thread of ours could run; the folder scan happens later,
+// outside the loader lock.
 
 #include "game_check.h"
 #include "hooks.h"
-#include "log.h"
 
 #include <windows.h>
 
@@ -27,18 +26,11 @@ BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID) {
         DisableThreadLibraryCalls(module);
 
         const char* mismatch = nullptr;
-        if (!CheckGameVersion(&mismatch)) {
-            SetInactive(mismatch ? mismatch : "this is not GTA San Andreas 1.0 US");
-        } else if (!InstallHooks(module)) {
-            SetInactive("the hooks could not be installed");
-        } else {
+        if (CheckGameVersion(&mismatch) && InstallHooks(module))
             MarkHooksInstalled();
-        }
 
         if (HANDLE thread = CreateThread(nullptr, 0, &StartupThread, nullptr, 0, nullptr))
             CloseHandle(thread);
-    } else if (reason == DLL_PROCESS_DETACH) {
-        logging::Close();
     }
     return TRUE;
 }

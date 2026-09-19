@@ -4,7 +4,6 @@
 
 #include <vector>
 
-#include "log.h"
 
 namespace {
 constexpr uint64_t kDebounceMs = 300;
@@ -54,12 +53,9 @@ void Watcher::Run(std::wstring root) {
                              OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
                              nullptr);
     if (dir == INVALID_HANDLE_VALUE) {
-        LOG_ERROR("hot reload disabled: cannot open the textures folder for watching (%lu)",
-                  GetLastError());
         return;
     }
 
-    LOG_INFO("watching the textures folder for changes");
 
     HANDLE ioEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     if (!ioEvent) {
@@ -78,7 +74,6 @@ void Watcher::Run(std::wstring root) {
 
         if (!ReadDirectoryChangesW(dir, buffer.data(), static_cast<DWORD>(buffer.size()), TRUE,
                                    filter, nullptr, &overlapped, nullptr)) {
-            LOG_ERROR("ReadDirectoryChangesW failed (%lu), hot reload stopped", GetLastError());
             break;
         }
 

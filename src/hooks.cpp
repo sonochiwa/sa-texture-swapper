@@ -2,10 +2,7 @@
 
 #include "addresses.h"
 #include "applier.h"
-#include "config.h"
-#include "log.h"
 #include "overrides.h"
-#include "version.h"
 #include "watcher.h"
 
 #include "MinHook.h"
@@ -14,11 +11,12 @@
 
 #include <filesystem>
 #include <mutex>
+#include <string>
 #include <system_error>
 
 namespace {
 
-Config   g_config;
+std::wstring g_rootDir;
 Registry g_registry;
 Applier  g_applier;
 // Never freed: a thread is never joined under the loader lock.
@@ -27,7 +25,6 @@ Watcher* g_watcher = nullptr;
 std::once_flag g_initOnce;
 HMODULE        g_module         = nullptr;
 bool           g_hooksInstalled = false;
-const char*    g_inactiveReason = nullptr;
 bool           g_active         = false;
 
 using LoadTxd_t       = bool(__cdecl*)(int, void*);
@@ -46,36 +43,26 @@ TimerUpdate_t   g_origTimerUpdate   = nullptr;
 
 // Runs on the first hook call or on the startup thread, never under the loader lock.
 void Initialise() {
-    wchar_t dllPath[MAX_PATH] = {};
-    GetModuleFileNameW(g_module, dllPath, MAX_PATH);
-
-    g_config = LoadConfig(g_module, dllPath);
-    // No log file exists at all unless the INI asks for one; every LOG_ call below
-    // then becomes a no-op.
-    if (g_config.log)
-        logging::Open(g_config.logPath);
-    LOG_INFO("%s v%s", PLUGIN_NAME, PLUGIN_VERSION);
-
-    if (!g_hooksInstalled) {
-        LOG_ERROR("%s; the plugin stays inactive",
-                  g_inactiveReason ? g_inactiveReason : "startup failed");
+    if (!g_hooksInstalled)
         return;
-    }
-    if (!g_config.isEnabled) {
-        LOG_INFO("isEnabled=0, the plugin stays inactive");
-        return;
-    }
+
+    // The textures folder follows the game, not the plugin: the .asi may sit in
+    // scripts\ while the textures always live beside the executable.
+    wchar_t exe[MAX_PATH] = {};
+    GetModuleFileNameW(nullptr, exe, MAX_PATH);
+    std::wstring gameDir = exe;
+    if (const size_t slash = gameDir.find_last_of(L"\\/"); slash != std::wstring::npos)
+        gameDir.erase(slash);
+    g_rootDir = gameDir + L"\\swapper";
 
     // Create the folder up front: it shows the user where the PNGs go, and the hot
     // reload watcher has nothing to open until it exists.
     std::error_code ec;
-    if (std::filesystem::create_directories(g_config.rootDir, ec))
-        LOG_INFO("created the textures folder");
+    std::filesystem::create_directories(g_rootDir, ec);
 
-    g_registry.Rescan(g_config.rootDir);
+    g_registry.Rescan(g_rootDir);
     g_applier.Init(&g_registry);
     g_active = true;
-    LOG_INFO("ready");
 }
 
 void EnsureInitialised() {
@@ -83,17 +70,13 @@ void EnsureInitialised() {
 }
 
 void Tick() {
-    if (!g_config.hotReload)
-        return;
-
     if (!g_watcher) {
         g_watcher = new Watcher();
-        g_watcher->Start(g_config.rootDir);
+        g_watcher->Start(g_rootDir);
     }
 
     if (g_watcher->ConsumePending()) {
-        LOG_INFO("change detected, rescanning");
-        g_registry.Rescan(g_config.rootDir);
+        g_registry.Rescan(g_rootDir);
         g_applier.ResyncAll();
     }
 }
@@ -173,10 +156,6 @@ bool InstallHooks(HMODULE module) {
         return false;
     }
     return true;
-}
-
-void SetInactive(const char* reason) {
-    g_inactiveReason = reason;
 }
 
 void MarkHooksInstalled() {

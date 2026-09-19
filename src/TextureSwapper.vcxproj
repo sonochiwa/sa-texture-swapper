@@ -91,11 +91,9 @@
   <ItemGroup>
     <ClCompile Include="TextureSwapper.cpp" />
     <ClCompile Include="applier.cpp" />
-    <ClCompile Include="config.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="game_check.cpp" />
     <ClCompile Include="hooks.cpp" />
-    <ClCompile Include="log.cpp" />
     <ClCompile Include="overrides.cpp" />
     <ClCompile Include="stb_image_impl.cpp">
       <WarningLevel>Level3</WarningLevel>
@@ -127,11 +125,9 @@
   <ItemGroup>
     <ClInclude Include="addresses.h" />
     <ClInclude Include="applier.h" />
-    <ClInclude Include="config.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="game_check.h" />
     <ClInclude Include="hooks.h" />
-    <ClInclude Include="log.h" />
     <ClInclude Include="overrides.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="texture.h" />
@@ -146,13 +142,6 @@
     <None Include="..\CHANGELOG.md" />
     <None Include="..\LICENSE" />
     <None Include="..\README.md" />
-    <None Include="..\Config\TextureSwapper.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-
-  <Target Name="CopyReleaseConfig" AfterTargets="Build"
-          Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Copy SourceFiles="$(SolutionDir)Config\TextureSwapper.ini"
-          DestinationFolder="$(OutDir)" />
-  </Target>
 </Project>

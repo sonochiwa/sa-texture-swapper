@@ -30,18 +30,13 @@ jobs:
         run: |
           $version = "${{ github.ref_name }}" -replace '^v', ''
 
-          $iniHeader = (Get-Content Config\TextureSwapper.ini -TotalCount 1)
-          if ($iniHeader -ne "# Texture Swapper v$version") {
-              throw "Config\TextureSwapper.ini declares '$iniHeader', not version $version."
-          }
-
           $archiveName = "TextureSwapper-v$version.zip"
           $archive = Join-Path build $archiveName
           $checksum = "$archive.sha256"
           $stage = Join-Path build "release\TextureSwapper-v$version"
           Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path $stage -Force | Out-Null
-          Copy-Item build\TextureSwapper.asi, build\TextureSwapper.ini -Destination $stage
+          Copy-Item build\TextureSwapper.asi -Destination $stage
 
           Compress-Archive -Path "$stage\*" -DestinationPath $archive -Force
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash.ToLowerInvariant()

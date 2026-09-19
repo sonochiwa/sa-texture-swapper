@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "game.h"
-#include "log.h"
 #include "stb_image.h"
 
 namespace {
@@ -40,10 +39,6 @@ bool ReadWholeFile(const std::wstring& path, std::vector<uint8_t>& out) {
     return ok && read == out.size();
 }
 
-bool IsPowerOfTwo(int value) {
-    return value > 0 && (value & (value - 1)) == 0;
-}
-
 } // namespace
 
 RwRaster* CreateRasterFromPng(const std::wstring& path) {
@@ -51,7 +46,6 @@ RwRaster* CreateRasterFromPng(const std::wstring& path) {
 
     std::vector<uint8_t> file;
     if (!ReadWholeFile(path, file)) {
-        LOG_ERROR("cannot read '%s'", narrowPath.c_str());
         return nullptr;
     }
 
@@ -59,20 +53,13 @@ RwRaster* CreateRasterFromPng(const std::wstring& path) {
     stbi_uc* pixels = stbi_load_from_memory(file.data(), static_cast<int>(file.size()), &width,
                                             &height, &channels, 4);
     if (!pixels) {
-        LOG_ERROR("cannot decode '%s': %s", narrowPath.c_str(), stbi_failure_reason());
         return nullptr;
-    }
-
-    if (!IsPowerOfTwo(width) || !IsPowerOfTwo(height)) {
-        LOG_INFO("'%s' is %dx%d; non power-of-two sizes may misbehave on some drivers",
-                 narrowPath.c_str(), width, height);
     }
 
     const int32_t flags  = rwRASTERTYPETEXTURE | rwRASTERFORMAT8888;
     RwRaster*     raster = game::RwRasterCreate(width, height, 32, flags);
     if (!raster) {
         stbi_image_free(pixels);
-        LOG_ERROR("RwRasterCreate failed for '%s' (%dx%d)", narrowPath.c_str(), width, height);
         return nullptr;
     }
 
@@ -80,7 +67,6 @@ RwRaster* CreateRasterFromPng(const std::wstring& path) {
     if (!dest) {
         game::RwRasterDestroy(raster);
         stbi_image_free(pixels);
-        LOG_ERROR("RwRasterLock failed for '%s'", narrowPath.c_str());
         return nullptr;
     }
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Removed the INI and the log; hot reload is always on and the textures
+  folder is always `swapper` next to the executable.
+
 ## 1.1.0
 
 - Changed the `loggingEnabled` setting to `log`. An existing INI keeps

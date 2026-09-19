@@ -24,8 +24,7 @@ Loader instead of competing with it, and it does not need Mod Loader installed.
   as `hud.txd`, `fonts.txd` and `particle.txd`.
 - Picks up edits at runtime; deleting a PNG restores the original texture.
 - Applies on top of dictionaries supplied by Mod Loader, and works without it.
-- Adds the texture if the dictionary has none by that name, and logs the similar
-  names it does have, since that is usually a typo.
+- Adds the texture if the dictionary has none by that name.
 - Stays inactive on any executable other than 1.0 US.
 
 ## Requirements
@@ -37,11 +36,11 @@ Loader instead of competing with it, and it does not need Mod Loader installed.
 
 ## Installation
 
-1. Copy `TextureSwapper.asi` and `TextureSwapper.ini` into the game directory,
-   next to `gta_sa.exe` (or into `scripts`).
-2. Create a folder named `swapper` next to `gta_sa.exe`.
-3. Put PNG files inside it, one folder per TXD.
-4. Start the game.
+1. Extract `TextureSwapper.asi` into the GTA San Andreas directory or its
+   `scripts` directory.
+2. Start the game once; it creates a `swapper` folder next to `gta_sa.exe`.
+3. Put PNG files inside it, one folder per TXD. Edits are picked up while the
+   game runs.
 
 The folder holding a PNG names the TXD, and the file name names the texture:
 
@@ -61,49 +60,15 @@ swapper\models\gta3.img\camera\cameraCrosshair.png
   identifies a dictionary by its name alone, with no notion of the archive it
   came from.
 - Names are matched case-insensitively.
-- Set `log=1` in the INI to get `TextureSwapper.log` next to the
-  plugin, listing every replacement and every skipped file. A folder that is
-  close to a real dictionary name but matches none is reported there with the
-  names it should have.
 
 Texture names inside a `.txd` rarely match the file names a mod uses, so look
-them up in a TXD editor such as Magic.TXD.
-
-## Configuration
-
-```ini
-# Texture Swapper v1.1.0
-# Created by sonochiwa
-# Source code: https://github.com/sonochiwa/sa-texture-swapper
-
-[general]
-isEnabled=1
-log=0
-hotReload=1
-```
-
-| Setting | Default | Meaning |
-| --- | ---: | --- |
-| `[general]` | | |
-| `isEnabled` | `1` | Master switch. `0` performs no replacements. |
-| `log` | `0` | Write `TextureSwapper.log` next to the plugin. Off by default, so no file is created at all. |
-| `hotReload` | `1` | Watch the folder and apply edits while the game runs. |
-
-`TextureSwapper.ini` sits next to `TextureSwapper.asi` and is created from the
-embedded canonical file when it is missing. Turn `log` on when a replacement does not show up: the log then names
-every texture that was replaced and every file that was skipped, with the reason.
-That is also the only place the plugin reports an unsupported executable, so with
-logging off it simply stays silent.
-
-The textures folder is always `<game>\swapper` and cannot be moved. Settings are
-read once at startup; `hotReload` covers the PNG files, not the INI. There are no
-hotkeys.
+them up in a TXD editor such as Magic.TXD. There is nothing to configure: the
+folder is always `swapper` next to the executable and hot reload is always on.
 
 PNG is the only supported format. Replacements are uploaded uncompressed and
 without mipmaps, so a 1024x1024 file takes 4 MB of video memory, and a replaced
 world texture aliases at a distance where the original did not. Texture names
-longer than 31 characters are skipped, and non power-of-two sizes are reported,
-both in the log.
+longer than 31 characters are skipped.
 
 ## Building
 
@@ -113,10 +78,7 @@ Visual Studio 2022 (v143), `Release|Win32`. Open `TextureSwapper.sln` or run:
 msbuild TextureSwapper.sln /t:Rebuild /p:Configuration=Release /p:Platform=Win32
 ```
 
-The plugin is written to `build\TextureSwapper.asi` next to a copy of the
-INI. `Config\TextureSwapper.ini` is compiled into the plugin as an `RCDATA`
-resource, so the INI written when the file is missing is byte for byte the
-canonical one.
+The plugin is written to `build\TextureSwapper.asi`.
 
 ## Repository Layout
 
@@ -126,19 +88,15 @@ README.md
 CHANGELOG.md
 LICENSE
 .github\workflows\release.yml   Tagged release build, checksum and attestation
-Config\
-  TextureSwapper.ini            Canonical configuration, embedded as RCDATA
 src\
   TextureSwapper.cpp            DllMain: version check, hook installation, startup thread
-  TextureSwapper.rc             Version resource and the embedded INI
+  TextureSwapper.rc             Version resource
   TextureSwapper.vcxproj
   addresses.h                   Game and RenderWare addresses
   applier.cpp / applier.h       Applies, reapplies and reverts replacements
-  config.cpp / config.h         INI creation and loading
   game.cpp / game.h             RenderWare structures and wrappers
   game_check.cpp / game_check.h Executable identification
   hooks.cpp / hooks.h           CTxdStore and CTimer hooks, deferred initialisation
-  log.cpp / log.h               Optional log file
   overrides.cpp / overrides.h   Folder scan; maps TXD name hash to PNG files
   stb_image_impl.cpp            stb_image implementation unit
   texture.cpp / texture.h       PNG to RwRaster

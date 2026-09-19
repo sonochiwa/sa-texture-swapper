@@ -8,9 +8,6 @@
 bool InstallHooks(HMODULE module);
 void MarkHooksInstalled();
 
-// Records why the plugin stays inactive; reported to the log once it opens.
-void SetInactive(const char* reason);
-
-// Loads the configuration, opens the log and scans the textures folder.
+// Creates and scans the textures folder.
 // Runs once, on the first hook call or on the startup thread.
 void StartInitialisation();
