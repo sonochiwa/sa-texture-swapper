@@ -100,6 +100,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <ClCompile Include="texture.cpp" />
+    <ClCompile Include="thread_freeze.cpp" />
     <ClCompile Include="watcher.cpp" />
     <ClCompile Include="..\vendor\minhook\src\buffer.c">
       <WarningLevel>Level3</WarningLevel>
@@ -131,6 +132,7 @@
     <ClInclude Include="overrides.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="texture.h" />
+    <ClInclude Include="thread_freeze.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="watcher.h" />
   </ItemGroup>

@@ -3,6 +3,7 @@
 #include "addresses.h"
 #include "applier.h"
 #include "overrides.h"
+#include "thread_freeze.h"
 #include "watcher.h"
 
 #include "MinHook.h"
@@ -151,6 +152,7 @@ bool InstallHooks(HMODULE module) {
         Hook(game::kAddrTimerUpdate, &TimerUpdate_Hook,
              reinterpret_cast<void**>(&g_origTimerUpdate));
 
+    ThreadFreezeLock lock;
     if (!created || MH_EnableHook(MH_ALL_HOOKS) != MH_OK) {
         MH_Uninitialize();
         return false;
