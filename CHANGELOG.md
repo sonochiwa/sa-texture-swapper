@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2
+
+- Fixed a rare hang at start-up when another plugin hooks the game at the
+  same moment.
+
 ## 1.2.1
 
 - Added `README.txt` to the release archive.
